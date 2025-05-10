@@ -214,11 +214,14 @@ def comdty_vanilla_option_calendar_spread(evaluation_date: datetime, expiry_date
 
     process_array = ql.StochasticProcessArray([process_long, process_short], correlation_matrix)
 
-    num_steps = 365
+
     day_counter = yield_curve.dayCounter()
     expiry_date_min = np.min([expiry_date_long, expiry_date_short])
     risk_free_rate = riskfree_rate_long if expiry_date_min == expiry_date_long else riskfree_rate_short
     years_to_maturity = day_counter.yearFraction(evaluation_date, expiry_date_min)
+
+    num_steps = max(int(365 * years_to_maturity), 365)
+
     time_grid = ql.TimeGrid(years_to_maturity, num_steps)
     random_sequence_generator = ql.GaussianRandomSequenceGenerator(ql.UniformRandomSequenceGenerator(2 * num_steps, ql.UniformRandomGenerator()))
     gaussian_path_generator = ql.GaussianMultiPathGenerator(process_array, list(time_grid), random_sequence_generator, False)
