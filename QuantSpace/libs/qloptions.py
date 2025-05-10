@@ -41,7 +41,7 @@ def comdty_vanilla_option(evaluation_date: datetime, expiry_date: datetime, forw
         engine = ql.BinomialCRRVanillaEngine(process, int(steps))
         option = ql.VanillaOption(payoff, exercise)
         option.setPricingEngine(engine)
-        option_vega = estimate_vega(option, process, volatility, strike_price, steps)
+        option_vega = estimate_vega(option, process, volatility, strike_price, expiry_date, steps)
         option_rho = estimate_rho(option, process, yield_curve, volatility, expiry_date, steps)
     else:
         engine = ql.AnalyticEuropeanEngine(process)
@@ -248,13 +248,14 @@ def comdty_vanilla_option_calendar_spread(evaluation_date: datetime, expiry_date
     return result_frame
 
 
-def estimate_vega(option: ql.Option, process: ql.BlackProcess, volatility: ql.BlackVolTermStructureHandle, strike_price: float, steps: int, bump: float = 0.01):
+def estimate_vega(option: ql.Option, process: ql.BlackProcess, volatility: ql.BlackVolTermStructureHandle, strike_price: float, expiry_date: ql.Date, steps: int, bump: float = 0.01):
     """
         Estimates Vega using finite difference method
     :param option: Option object
     :param process: Black process object
     :param volatility: Volatility term structure
     :param strike_price: Strike price of the option
+    :param expiry_date: Expiry date of the option
     :param steps: Number of steps for the binomial tree
     :param bump: Amount to bump the volatility for finite difference
     :return: Vega of the option"""
@@ -262,14 +263,14 @@ def estimate_vega(option: ql.Option, process: ql.BlackProcess, volatility: ql.Bl
     evaluation_date = ql.Settings.instance().evaluationDate
 
     bumped_vol_up = ql.BlackVolTermStructureHandle(ql.BlackConstantVol(
-         evaluation_date, volatility.calendar(), volatility.blackVol(evaluation_date, strike_price) + bump, volatility.dayCounter()))
+         evaluation_date, volatility.calendar(), volatility.blackVol(expiry_date, strike_price) + bump, volatility.dayCounter()))
     process_up = ql.BlackProcess(ql.QuoteHandle(ql.SimpleQuote(process.x0())), process.riskFreeRate(), bumped_vol_up)
     engine_up = ql.BinomialCRRVanillaEngine(process_up, int(steps))
     option.setPricingEngine(engine_up)
     price_up = option.NPV()
 
     bumped_vol_down = ql.BlackVolTermStructureHandle(ql.BlackConstantVol(
-        evaluation_date, volatility.calendar(), volatility.blackVol(evaluation_date, strike_price) - bump, volatility.dayCounter()))
+        evaluation_date, volatility.calendar(), volatility.blackVol(expiry_date, strike_price) - bump, volatility.dayCounter()))
     process_down = ql.BlackProcess(ql.QuoteHandle(ql.SimpleQuote(process.x0())), process.riskFreeRate(), bumped_vol_down)
     engine_down = ql.BinomialCRRVanillaEngine(process_down, int(steps))
     option.setPricingEngine(engine_down)
@@ -279,7 +280,7 @@ def estimate_vega(option: ql.Option, process: ql.BlackProcess, volatility: ql.Bl
     return vega
 
 
-def estimate_rho(option, process, yield_curve, volatility, expiry_date, steps, bump=0.0001):
+def estimate_rho(option: ql.Option, process: ql.BlackProcess, yield_curve: ql.YieldTermStructureHandle, volatility: ql.BlackVolTermStructureHandle, expiry_date: ql.Date, steps: int, bump: float = 0.001):
     """ Estimates Rho using finite difference method
     :param option: Option object
     :param process: Black process object
@@ -289,21 +290,19 @@ def estimate_rho(option, process, yield_curve, volatility, expiry_date, steps, b
     :param steps: Number of steps for the binomial tree
     :param bump: Amount to bump the yield for finite difference
     :return: Rho of the option"""
+
     evaluation_date = ql.Settings.instance().evaluationDate
-    base_rate = yield_curve.zeroRate(expiry_date, yield_curve.dayCounter(),  ql.Continuous).rate()
+    base_rate = yield_curve.zeroRate(expiry_date, yield_curve.dayCounter(), ql.Continuous).rate()
 
     bumped_yield_up = ql.FlatForward(evaluation_date, base_rate + bump, yield_curve.dayCounter())
-    bumped_yield_down = ql.FlatForward(evaluation_date, base_rate - bump, yield_curve.dayCounter())
-
     process_up = ql.BlackProcess(ql.QuoteHandle(ql.SimpleQuote(process.x0())), ql.YieldTermStructureHandle(bumped_yield_up), volatility)
-    process_down = ql.BlackProcess(ql.QuoteHandle(ql.SimpleQuote(process.x0())), ql.YieldTermStructureHandle(bumped_yield_down), volatility)
-
     engine_up = ql.BinomialCRRVanillaEngine(process_up, int(steps))
-    engine_down = ql.BinomialCRRVanillaEngine(process_down, int(steps))
-
     option.setPricingEngine(engine_up)
     price_up = option.NPV()
 
+    bumped_yield_down = ql.FlatForward(evaluation_date, base_rate - bump, yield_curve.dayCounter())
+    process_down = ql.BlackProcess(ql.QuoteHandle(ql.SimpleQuote(process.x0())), ql.YieldTermStructureHandle(bumped_yield_down), volatility)
+    engine_down = ql.BinomialCRRVanillaEngine(process_down, int(steps))
     option.setPricingEngine(engine_down)
     price_down = option.NPV()
 
