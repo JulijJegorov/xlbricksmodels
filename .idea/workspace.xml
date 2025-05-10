@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="1e6bb47b-5a6d-4b5b-b38a-2a68964e1dd5" name="Changes" comment="" />
+    <list default="true" id="1e6bb47b-5a6d-4b5b-b38a-2a68964e1dd5" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/QuantSpace/libs/qloptions.py" beforeDir="false" afterPath="$PROJECT_DIR$/QuantSpace/libs/qloptions.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -34,7 +37,8 @@
       <option name="presentableId" value="Default" />
       <updated>1746734925995</updated>
       <workItem from="1746734927571" duration="61000" />
-      <workItem from="1746735001696" duration="27000" />
+      <workItem from="1746735001696" duration="622000" />
+      <workItem from="1746785768739" duration="3219000" />
     </task>
     <servers />
   </component>

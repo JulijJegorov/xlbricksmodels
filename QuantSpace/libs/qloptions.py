@@ -201,7 +201,7 @@ def comdty_vanilla_option_calendar_spread(evaluation_date: datetime, expiry_date
     volatility_short = volatility.blackVol(expiry_date_short, forward_price)
 
     volatility_term_structure_long = ql.BlackVolTermStructureHandle(ql.BlackConstantVol(evaluation_date, volatility.calendar(), volatility_long, volatility.dayCounter()))
-    volatility_term_structure_short = ql.BlackVolTermStructureHandle(ql.BlackConstantVol(evaluation_date, volatility.calendar(),volatility_short, volatility.dayCounter()))
+    volatility_term_structure_short = ql.BlackVolTermStructureHandle(ql.BlackConstantVol(evaluation_date, volatility.calendar(), volatility_short, volatility.dayCounter()))
 
     riskfree_rate_long = yield_curve.zeroRate(expiry_date_long, yield_curve.dayCounter(),  ql.Continuous, ql.NoFrequency).rate()
     riskfree_rate_short = yield_curve.zeroRate(expiry_date_short, yield_curve.dayCounter(),  ql.Continuous, ql.NoFrequency).rate()
@@ -242,8 +242,8 @@ def comdty_vanilla_option_calendar_spread(evaluation_date: datetime, expiry_date
     discount_factor = np.exp(-risk_free_rate * years_to_maturity)
     price = payoff * discount_factor
 
-    result_frame = pd.DataFrame([payoff, price, np.mean(spread), riskfree_rate_long, riskfree_rate_short, volatility_long, volatility_short],
-                                columns=[option_type], index=['payoff', 'price', 'spread', 'risk_free_rate_long', 'risk_free_rate_short', 'volatility_long', 'volatility_short'])
+    result_frame = pd.DataFrame([price, payoff, riskfree_rate_long, riskfree_rate_short, volatility_long, volatility_short],
+                                columns=[option_type], index=['price', 'payoff', 'risk_free_rate_long', 'risk_free_rate_short', 'volatility_long', 'volatility_short'])
 
     return result_frame
 
